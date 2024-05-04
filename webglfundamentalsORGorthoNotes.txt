@@ -1,0 +1,45 @@
+
+https://webglfundamentals.org/webgl/lessons/webgl-fundamentals.html
+clip space coordinates 
+
+screen space
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+
+
+https://webglfundamentals.org/webgl/lessons/webgl-2d-matrices.html
+
+  attribute vec2 a_position;
+  uniform vec2 u_resolution;
+ 
+  void main() {
+    // convert the position from pixels to 0.0 to 1.0
+    vec2 zeroToOne = a_position / u_resolution;
+ 
+    // convert from 0->1 to 0->2
+    vec2 zeroToTwo = zeroToOne * 2.0;
+ 
+    // convert from 0->2 to -1->+1 (clip space)
+    vec2 clipSpace = zeroToTwo - 1.0;
+
+If you look at each of those steps in turn, the first step, "convert from pixels to 0.0 to 1.0", is really a scale operation. The second is also a scale operation. The next is a translation and the very last scales Y by -1
+
+
+https://webglfundamentals.org/webgl/lessons/webgl-3d-orthographic.html
+
+WebGL has the ability to draw only forward facing or back facing triangles. We can turn that feature on with
+
+      gl.enable(gl.CULL_FACE);
+
+Even with all the triangles facing in the correct direction and with the back facing ones being culled we still have places where triangles that should be in the back are being drawn over triangles that should be in front.
+
+Enter the DEPTH BUFFER.
+
+A depth buffer, sometimes called a Z-Buffer, is a rectangle of depth pixels, one depth pixel for each color pixel used to make the image. As WebGL draws each color pixel it can also draw a depth pixel. It does this based on the values we return from the vertex shader for Z. Just like we had to convert to clip space for X and Y, Z is also in clip space or (-1 to +1). That value is then converted into a depth space value (0 to +1). Before WebGL draws a color pixel it will check the corresponding depth pixel. If the depth value for the pixel it's about to draw is greater than the value of the corresponding depth pixel then WebGL does not draw the new color pixel. Otherwise it draws both the new color pixel with the color from your fragment shader AND it draws the depth pixel with the new depth value. This means, pixels that are behind other pixels won't get drawn.
+
+      gl.enable(gl.DEPTH_TEST);
+
+We also need to clear the depth buffer back to 1.0 before we start drawing.
+
+    // Clear the canvas AND the depth buffer.
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
